@@ -1,0 +1,39 @@
+version: '3.3'
+
+services:
+  db:
+    container_name: app_database
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: promotions
+    ports:
+      - "3306:3306"
+    volumes:
+      - database-data:/var/lib/mysql
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+  promotions:
+    container_name: app_service
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      HTTP_PORT: "8080"
+      MYSQL_USER: root
+      MYSQL_PASSWORD: test
+      MYSQL_ADDR: "db:3306"
+      MYSQL_DATABASE: promotions
+      SSL_PRIVATE_KEY: "localhost.key"
+      SSL_CERTIFICATE: "localhost.crt"
+    ports:
+      - "1321:8080"
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+
+volumes:
+  database-data:
